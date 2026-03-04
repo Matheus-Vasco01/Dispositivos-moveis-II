@@ -11,17 +11,47 @@ class ProductPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Products")),
-      body: ValueListenableBuilder<List<Product>>(
-        valueListenable: viewModel.products,
-        builder: (context, products, _) {
-          return ListView.builder(
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return ListTile(
-                leading: Image.network(product.image),
-                title: Text(product.title),
-                subtitle: Text("\$${product.price}"),
+      body: ValueListenableBuilder<bool>(
+        valueListenable: viewModel.isLoading,
+        builder: (context, isLoading, _) {
+          if (isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return ValueListenableBuilder<String?>(
+            valueListenable: viewModel.error,
+            builder: (context, error, _) {
+              if (error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Erro: $error'),
+                      ElevatedButton(
+                        onPressed: viewModel.loadProducts,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return ValueListenableBuilder<List<Product>>(
+                valueListenable: viewModel.products,
+                builder: (context, products, _) {
+                  if (products.isEmpty) {
+                    return const Center(child: Text('Nenhum produto encontrado.'));
+                  }
+                  return ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return ListTile(
+                        leading: Image.network(product.image),
+                        title: Text(product.title),
+                        subtitle: Text("\$${product.price}"),
+                      );
+                    },
+                  );
+                },
               );
             },
           );

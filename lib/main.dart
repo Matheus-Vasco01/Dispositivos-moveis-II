@@ -4,6 +4,7 @@ import 'data/datasources/product_remote_datasource.dart';
 import 'data/repositories/product_repository_impl.dart';
 import 'presentation/viewmodels/product_viewmodel.dart';
 import 'presentation/pages/product_page.dart';
+import 'core/network/http_client.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Initialize dependencies
     final dio = Dio();
-    final datasource = ProductRemoteDatasource(dio);
+    final httpClient = DioHttpClient(dio);
+    final datasource = ProductRemoteDatasource(httpClient);
     final repository = ProductRepositoryImpl(datasource);
     final viewModel = ProductViewModel(repository);
 

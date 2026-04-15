@@ -1,33 +1,46 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/product.dart';
 import '../viewmodels/product_viewmodel.dart';
+import '../../core/errors/failure.dart';
 
-class ProductPage extends StatelessWidget {
+class ProductPage extends StatefulWidget {
   final ProductViewModel viewModel;
 
   const ProductPage({super.key, required this.viewModel});
+
+  @override
+  State<ProductPage> createState() => _ProductPageState();
+}
+
+class _ProductPageState extends State<ProductPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Carrega os produtos na inicialização
+    widget.viewModel.loadProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Products")),
       body: ValueListenableBuilder<bool>(
-        valueListenable: viewModel.isLoading,
+        valueListenable: widget.viewModel.isLoading,
         builder: (context, isLoading, _) {
           if (isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          return ValueListenableBuilder<String?>(
-            valueListenable: viewModel.error,
+          return ValueListenableBuilder<Failure?>(
+            valueListenable: widget.viewModel.error,
             builder: (context, error, _) {
               if (error != null) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Erro: $error'),
+                      Text('Erro: ${error.message}'),
                       ElevatedButton(
-                        onPressed: viewModel.loadProducts,
+                        onPressed: widget.viewModel.loadProducts,
                         child: const Text('Tentar novamente'),
                       ),
                     ],
@@ -35,7 +48,7 @@ class ProductPage extends StatelessWidget {
                 );
               }
               return ValueListenableBuilder<List<Product>>(
-                valueListenable: viewModel.products,
+                valueListenable: widget.viewModel.products,
                 builder: (context, products, _) {
                   if (products.isEmpty) {
                     return const Center(child: Text('Nenhum produto encontrado.'));
@@ -45,7 +58,12 @@ class ProductPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return ListTile(
-                        leading: Image.network(product.image),
+                        leading: Image.network(
+                          product.image,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.contain,
+                        ),
                         title: Text(product.title),
                         subtitle: Text("\$${product.price}"),
                       );
@@ -58,8 +76,8 @@ class ProductPage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: viewModel.loadProducts,
-        child: const Icon(Icons.download),
+        onPressed: widget.viewModel.loadProducts,
+        child: const Icon(Icons.refresh),
       ),
     );
   }
